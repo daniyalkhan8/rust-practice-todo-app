@@ -9,7 +9,7 @@ struct UpdateTodo {
     title: String
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 struct Todo {
     id: u32,
     title: String,
@@ -49,14 +49,44 @@ impl JsonTodos {
         std::fs::write(TODOS_PATH, todos_updated).expect("Failed to write to todos.json");
     }
 
-    fn get(self, id: u32) {}
+    fn get(self, id: u32) {
+        let todo: Vec<Todo> = self.todos.iter().filter(|todo| todo.id == id).cloned().collect();
+        println!("{:#?}", todo);
+    }
 
     fn list(self) {
         println!("{:#?}", self.todos);
     }
-    fn update(self, todo: UpdateTodo) {}
-    fn done(self, id: u32) {}
-    fn delete(self, id: u32) {}
+
+    fn update(mut self, update_todo: UpdateTodo) {
+        self.todos = self.todos.into_iter().map(|mut todo| {
+            if todo.id == update_todo.id {
+                todo.title = update_todo.title.clone()
+            }
+            todo
+        }).collect();
+
+        let todos_updated = serde_json::to_string(&self.todos).unwrap();
+        std::fs::write(TODOS_PATH, todos_updated).expect("Failed to write to todos.json");
+    }
+
+    fn done(mut self, id: u32) {
+        self.todos = self.todos.into_iter().map(|mut todo| {
+           if todo.id == id {
+               todo.done = true;
+           }
+            todo
+        }).collect();
+
+        let todos_updated = serde_json::to_string(&self.todos).unwrap();
+        std::fs::write(TODOS_PATH, todos_updated).expect("Failed to write to todos.json");
+    }
+
+    fn delete(mut self, id: u32) {
+        self.todos = self.todos.into_iter().filter(|todo| todo.id != id).collect();
+        let todos_updated = serde_json::to_string(&self.todos).unwrap();
+        std::fs::write(TODOS_PATH, todos_updated).expect("Failed to write to todos.json");
+    }
 }
 
 #[derive(Debug)]
@@ -118,7 +148,11 @@ fn main() {
 
     match todo_operation {
         TodoOperations::Add(title) => todos.add(title),
+        TodoOperations::Get(id) => todos.get(id),
         TodoOperations::List => todos.list(),
-        _ => println!("debug")
+        TodoOperations::Update(update_todo) => todos.update(update_todo),
+        TodoOperations::Done(id) => todos.done(id),
+        TodoOperations::Delete(id) => todos.delete(id),
+        TodoOperations::Unknown => eprintln!("Error occurred while performing the operation.")
     }
 }
