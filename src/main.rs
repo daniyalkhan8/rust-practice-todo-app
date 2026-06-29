@@ -4,6 +4,16 @@ use std::env;
 const TODOS_PATH: &str = "todos.json";
 
 #[derive(Debug)]
+enum TodoOperations {
+    Add(String),
+    List,
+    Get(u32),
+    Update(UpdateTodo),
+    Done(u32),
+    Delete(u32),
+}
+
+#[derive(Debug)]
 struct UpdateTodo {
     id: u32,
     title: String,
@@ -104,16 +114,6 @@ impl JsonTodos {
         let todos_updated = serde_json::to_string(&self.todos).unwrap();
         std::fs::write(TODOS_PATH, todos_updated).expect("Failed to write to todos.json");
     }
-}
-
-#[derive(Debug)]
-enum TodoOperations {
-    Add(String),
-    List,
-    Get(u32),
-    Update(UpdateTodo),
-    Done(u32),
-    Delete(u32),
 }
 
 fn process_env_args(args: &Vec<String>) -> Result<TodoOperations, String> {
