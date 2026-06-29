@@ -34,11 +34,11 @@ impl JsonTodos {
     }
 
     fn add(mut self, title: String) {
-        let id: u32;
+        let mut id: u32 = 0;
         if self.todos.len() > 0 {
-            id = self.todos[self.todos.len() - 1].id + 1
-        } else {
-            id = 0
+            if let Some(newest_todo) = self.todos.iter().max_by_key(|todo| todo.id) {
+                id = newest_todo.id + 1;
+            }
         }
 
         let done = false;
