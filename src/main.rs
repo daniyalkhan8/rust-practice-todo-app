@@ -1,3 +1,6 @@
+mod db_config;
+use db_config::establish_connection;
+
 use serde::{Deserialize, Serialize};
 use std::env;
 
