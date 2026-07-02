@@ -1,5 +1,6 @@
 use sqlx::PgPool;
 use sqlx::types::time::OffsetDateTime;
+use crate::UpdateTodo;
 
 #[derive(Debug)]
 pub struct Todo {
@@ -17,10 +18,10 @@ pub async fn add_todo(pool: &PgPool, title: String) -> anyhow::Result<i32> {
     Ok(rec.id)
 }
 
-pub async fn get_todo(pool: &PgPool, id: u32) -> anyhow::Result<Todo> {
+pub async fn get_todo(pool: &PgPool, id: i32) -> anyhow::Result<Todo> {
     let todo = sqlx::query_as!(
         Todo,
-        r#"SELECT * FROM todo WHERE id=$1"#, id as i32
+        r#"SELECT * FROM todo WHERE id=$1"#, id
     ).fetch_one(pool).await?;
 
     Ok(todo)
@@ -33,4 +34,22 @@ pub async fn list_todos(pool: &PgPool) -> anyhow::Result<Vec<Todo>> {
     ).fetch_all(pool).await?;
 
     Ok(todos)
+}
+
+pub async fn update_todo(pool: &PgPool, update_todo: &UpdateTodo) -> anyhow::Result<Todo> {
+    let todo = sqlx::query_as!(
+        Todo,
+        r#"UPDATE todo SET title = $1 WHERE id = $2 RETURNING *"#, update_todo.title, update_todo.id
+    ).fetch_one(pool).await?;
+
+    Ok(todo)
+}
+
+pub async fn mark_as_done(pool: &PgPool, id: &i32) -> anyhow::Result<()> {
+    sqlx::query_as!(
+        Todo,
+        r#"UPDATE todo SET done = true WHERE id = $1"#, id
+    ).fetch_one(pool).await?;
+
+    Ok(())
 }

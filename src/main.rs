@@ -2,22 +2,21 @@ mod todos;
 mod db_config;
 
 use db_config::establish_connection;
-use serde::{Deserialize, Serialize};
 use std::env;
 
 #[derive(Debug)]
 enum TodoOperations {
     Add(String),
     List,
-    Get(u32),
+    Get(i32),
     Update(UpdateTodo),
-    Done(u32),
-    Delete(u32),
+    Done(i32),
+    Delete(i32),
 }
 
 #[derive(Debug)]
 struct UpdateTodo {
-    id: u32,
+    id: i32,
     title: String,
 }
 
@@ -63,7 +62,7 @@ async fn main() {
         std::process::exit(1);
     });
 
-    let connection_pool = db_config::establish_connection().await.unwrap_or_else(|err| {
+    let connection_pool = establish_connection().await.unwrap_or_else(|err| {
         eprintln!("{err}");
         std::process::exit(1);
     });
@@ -90,8 +89,20 @@ async fn main() {
             });
             println!("{todos_list:#?}")
         },
-        TodoOperations::Update(update_todo) => {},
-        TodoOperations::Done(id) => {},
+        TodoOperations::Update(update_todo) => {
+            let updated_todo = todos::update_todo(&connection_pool, &update_todo).await.unwrap_or_else(|err| {
+                eprintln!("{err}");
+                std::process::exit(1);
+            });
+            println!("{updated_todo:#?}")
+        },
+        TodoOperations::Done(id) => {
+            todos::mark_as_done(&connection_pool, &id).await.unwrap_or_else(|err| {
+                eprintln!("{err}");
+                std::process::exit(1);
+            });
+            println!("Marked todo with ID: {id} as done.");
+        },
         TodoOperations::Delete(id) => {},
     }
 }
