@@ -5,8 +5,6 @@ use db_config::establish_connection;
 use serde::{Deserialize, Serialize};
 use std::env;
 
-const TODOS_PATH: &str = "todos.json";
-
 #[derive(Debug)]
 enum TodoOperations {
     Add(String),
@@ -78,8 +76,20 @@ async fn main() {
             });
             println!("Added the todo with ID: {id}");
         },
-        TodoOperations::Get(id) => {},
-        TodoOperations::List => {},
+        TodoOperations::Get(id) => {
+            let todo = todos::get_todo(&connection_pool, id).await.unwrap_or_else(|err| {
+                eprintln!("{err}");
+                std::process::exit(1);
+            });
+            println!("{todo:#?}")
+        },
+        TodoOperations::List => {
+            let todos_list = todos::list_todos(&connection_pool).await.unwrap_or_else(|err| {
+                eprintln!("{err}");
+                std::process::exit(1);
+            });
+            println!("{todos_list:#?}")
+        },
         TodoOperations::Update(update_todo) => {},
         TodoOperations::Done(id) => {},
         TodoOperations::Delete(id) => {},
