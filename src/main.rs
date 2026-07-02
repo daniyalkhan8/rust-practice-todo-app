@@ -1,6 +1,7 @@
+mod todos;
 mod db_config;
-use db_config::establish_connection;
 
+use db_config::establish_connection;
 use serde::{Deserialize, Serialize};
 use std::env;
 
@@ -153,20 +154,31 @@ fn process_env_args(args: &Vec<String>) -> Result<TodoOperations, String> {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = env::args().collect();
     let todo_operation = process_env_args(&args).unwrap_or_else(|err| {
         eprintln!("{err}");
         std::process::exit(1);
     });
-    let todos = JsonTodos::new();
+
+    let connection_pool = db_config::establish_connection().await.unwrap_or_else(|err| {
+        eprintln!("{err}");
+        std::process::exit(1);
+    });
 
     match todo_operation {
-        TodoOperations::Add(title) => todos.add(title),
-        TodoOperations::Get(id) => todos.get(id),
-        TodoOperations::List => todos.list(),
-        TodoOperations::Update(update_todo) => todos.update(update_todo),
-        TodoOperations::Done(id) => todos.done(id),
-        TodoOperations::Delete(id) => todos.delete(id),
+        TodoOperations::Add(title) => {
+            let id = todos::add_todo(&connection_pool, title).await.unwrap_or_else(|err| {
+                eprintln!("{err}");
+                std::process::exit(1);
+            });
+            println!("Added the todo with ID: {id}");
+        },
+        TodoOperations::Get(id) => {},
+        TodoOperations::List => {},
+        TodoOperations::Update(update_todo) => {},
+        TodoOperations::Done(id) => {},
+        TodoOperations::Delete(id) => {},
     }
 }
