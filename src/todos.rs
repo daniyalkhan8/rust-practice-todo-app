@@ -7,7 +7,7 @@ use crate::UpdateTodo;
 pub struct Todo {
     id: i32,
     title: String,
-    done: Option<bool>,
+    done: bool,
     created_at: OffsetDateTime,
 }
 
