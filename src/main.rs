@@ -73,28 +73,28 @@ async fn main() {
                 eprintln!("{err}");
                 std::process::exit(1);
             });
-            println!("Added the todo with ID: {id}");
+            println!("Added the todo with ID: {id}.");
         },
         TodoOperations::Get(id) => {
             let todo = todos::get_todo(&connection_pool, id).await.unwrap_or_else(|err| {
                 eprintln!("{err}");
                 std::process::exit(1);
             });
-            println!("{todo:#?}")
+            println!("{todo:#?}");
         },
         TodoOperations::List => {
             let todos_list = todos::list_todos(&connection_pool).await.unwrap_or_else(|err| {
                 eprintln!("{err}");
                 std::process::exit(1);
             });
-            println!("{todos_list:#?}")
+            println!("{todos_list:#?}");
         },
         TodoOperations::Update(update_todo) => {
-            let updated_todo = todos::update_todo(&connection_pool, &update_todo).await.unwrap_or_else(|err| {
+            todos::update_todo(&connection_pool, &update_todo).await.unwrap_or_else(|err| {
                 eprintln!("{err}");
                 std::process::exit(1);
             });
-            println!("{updated_todo:#?}")
+            println!("Updated todo with ID: {}", update_todo.id)
         },
         TodoOperations::Done(id) => {
             todos::mark_as_done(&connection_pool, &id).await.unwrap_or_else(|err| {
@@ -103,6 +103,12 @@ async fn main() {
             });
             println!("Marked todo with ID: {id} as done.");
         },
-        TodoOperations::Delete(id) => {},
+        TodoOperations::Delete(id) => {
+            todos::delete_todo(&connection_pool, &id).await.unwrap_or_else(|err| {
+                eprintln!("{err}");
+                std::process::exit(1);
+            });
+            println!("Deleted todo with ID: {id}.");
+        },
     }
 }
