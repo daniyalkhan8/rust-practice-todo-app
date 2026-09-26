@@ -1,6 +1,6 @@
+use dotenvy;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::time::Duration;
-use dotenvy;
 
 pub async fn establish_connection() -> anyhow::Result<PgPool> {
     dotenvy::dotenv().ok();
